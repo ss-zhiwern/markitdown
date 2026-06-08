@@ -45,3 +45,5 @@ Claude.
 - YouTube transcript converter (`youtube-transcript-api`).
 - The 3rd-party plugin system and the sample plugin.
 - Docker packaging (`Dockerfile`, `.dockerignore`, MCP `Dockerfile`).
+- `tests`: orphaned audio (`test.mp3`/`test.m4a`/`test.wav`) and LLM
+  image-caption (`test_llm.jpg`) test fixtures left behind by the rebrand.
