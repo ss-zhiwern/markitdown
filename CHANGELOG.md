@@ -19,6 +19,13 @@ Claude.
 - PreToolUse **ingest-guard hook** that redirects `Read` of PDF/Office/EPUB/MSG
   documents to the `convert_to_markdown` MCP tool, with an idempotent
   settings.json merge helper.
+- `hook`: ingest-guard now also intercepts `WebFetch`, redirecting every
+  `http`/`https` URL to `convert_to_markdown` so web pages are fetched and
+  converted locally instead of via the built-in cloud web fetch.
+- `hook`: `Read` now guards all rich/binary supported types (PDF, Word,
+  PowerPoint, Excel, EPUB, MSG, images, `.ipynb`, `.zip`); opt-in
+  `MARKITDOWN_GUARD_ALL=1` extends guarding to every supported type, including
+  the text-ish ones (`.html`/`.csv`/`.xml`/`.rss`/`.atom`/`.txt`/`.md`/`.json`).
 
 ### Changed
 

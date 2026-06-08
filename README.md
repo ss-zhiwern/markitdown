@@ -11,7 +11,9 @@ It exists for one reason: **keep sensitive documents local.** Upstream MarkItDow
 - Exposes a single MCP tool — `convert_to_markdown(uri)` — over stdio (also HTTP/SSE).
 - `uri` may be a `file:`, `data:`, `http:` or `https:` URI.
 - Conversion of **local files is fully offline**. Fetching `http(s)`/Wikipedia/Bing/RSS URLs reaches the network only because you explicitly asked for that remote content.
-- Ships an **ingest-guard hook** for Claude Code: when Claude tries to `Read` a binary document (PDF/Office/EPUB/MSG), the read is automatically redirected to `convert_to_markdown` so it always ingests Markdown instead of raw bytes.
+- Ships an **ingest-guard hook** for Claude Code that redirects two things to `convert_to_markdown`:
+  - **`Read` of a rich/binary document** — PDF, Word (`.doc`/`.docx`), PowerPoint (`.ppt`/`.pptx`), Excel (`.xls`/`.xlsx`), EPUB, Outlook `.msg`, images (`.jpg`/`.jpeg`/`.png`), Jupyter `.ipynb`, and `.zip` — so Claude ingests Markdown instead of raw bytes. Text-ish formats (`.md`/`.json`/`.txt`/`.csv`/`.xml`/`.html`) stay directly readable by default so editing source/config still works. To route **every** supported type (including those text-ish ones) through markitdown, install with `MARKITDOWN_GUARD_ALL=1 scripts/install.sh` — note this also blocks Claude from directly `Read`/`Edit`-ing `.md`/`.json`/`.txt`/etc.
+  - **`WebFetch` of any `http`/`https` URL** — so web pages (HTML, Wikipedia, RSS/Atom, remote PDFs/Office docs, …) are fetched **and** converted locally instead of going through the built-in cloud web fetch.
 
 ### Supported formats
 PDF · Word (docx) · PowerPoint (pptx) · Excel (xlsx/xls) · EPUB · HTML · Outlook (.msg) · CSV/JSON/XML · ZIP (iterates contents) · images (EXIF metadata) · Wikipedia/Bing/RSS URLs · plain text & code.
@@ -128,7 +130,7 @@ Markdown is close to plain text but preserves structure (headings, lists, tables
 
 - **Sanitize untrusted input.** Do not feed untrusted file paths or URIs directly in hosted/multi-user contexts. Restrict file paths, URI schemes, and network destinations (block private/loopback/link-local/metadata addresses) as appropriate.
 - **The MCP HTTP transport has no authentication** and binds to `localhost` by default. Do not bind it to other interfaces unless you understand the implications.
-- **The ingest-guard hook only blocks `Read` and redirects to the local converter** — it does not itself send data anywhere.
+- **The ingest-guard hook only blocks `Read` of rich documents and `WebFetch`, redirecting both to the local converter** — it does not itself send data anywhere. (For `WebFetch` URLs, the redirected `convert_to_markdown` call still fetches the remote content you asked for, just locally instead of via the built-in cloud fetch.)
 
 ## Running tests
 ```bash

@@ -42,16 +42,33 @@ echo "==> Pre-warming environment (first build can take a minute)"
 uv run --directory "$MCP_DIR" "$SERVER_NAME" --help >/dev/null 2>&1 || true
 
 # --- 3. install the ingest-guard hook -----------------------------------------
+# Matcher covers Read (local files) and WebFetch (http/https URLs) so both are
+# routed through markitdown-liberated instead of raw reads / built-in web fetch.
+#
+# By default only rich/binary docs are guarded on Read (text-ish md/json/txt/csv/
+# xml/html stay readable so editing source works). Set MARKITDOWN_GUARD_ALL=1 to
+# guard LITERALLY EVERY supported file type -- including the text-ish ones. That
+# also blocks Claude from Read/Edit of .md/.json/.txt/etc, so use deliberately.
+GUARD_CMD="$PY \"$GUARD\""
+if [ "${MARKITDOWN_GUARD_ALL:-}" = "1" ] || [ "${MARKITDOWN_GUARD_ALL:-}" = "true" ]; then
+  GUARD_CMD="$GUARD_CMD --all"
+  echo "==> MARKITDOWN_GUARD_ALL set: guarding ALL supported types (incl. md/json/txt/csv/xml/html)"
+fi
 echo "==> Installing ingest-guard hook into $SETTINGS"
-"$PY" "$HOOK_CONFIG" install --command "$PY \"$GUARD\"" --settings "$SETTINGS"
+"$PY" "$HOOK_CONFIG" install --command "$GUARD_CMD" --settings "$SETTINGS" --matcher "Read|WebFetch"
 
 # --- done ---------------------------------------------------------------------
 cat <<EOF
 
 ==> Done.
     MCP server '$SERVER_NAME' registered (user scope).
-    Ingest-guard hook active: Read on PDF/Office/EPUB/MSG is redirected to
-    the convert_to_markdown tool automatically.
+    Ingest-guard hook active:
+      - Read of a rich/binary document (PDF, Word, PowerPoint, Excel, EPUB,
+        MSG, images, ipynb, zip) is redirected to convert_to_markdown.
+        (Text-ish formats md/json/txt/csv/xml/html stay directly readable --
+         re-run with MARKITDOWN_GUARD_ALL=1 to guard those too.)
+      - WebFetch of any http/https URL is redirected to convert_to_markdown so
+        web pages are fetched + converted locally (never via cloud web fetch).
 
     NOTE: restart Claude Code (or start a new session) to pick up the server
     and hook. Verify with:  claude mcp list
