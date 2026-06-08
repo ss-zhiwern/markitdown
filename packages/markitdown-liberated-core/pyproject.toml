@@ -1,0 +1,101 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "markitdown-liberated-core"
+dynamic = ["version"]
+description = 'Local-only conversion engine for markitdown-liberated: converts files to Markdown with no cloud services.'
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Adam Fourney", email = "adamfo@microsoft.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "beautifulsoup4",
+  "requests",
+  "markdownify",
+  "magika~=0.6.1",
+  "charset-normalizer",
+  "defusedxml",
+]
+
+[project.optional-dependencies]
+all = [
+  "python-pptx",
+  "mammoth~=1.11.0",
+  "pandas",
+  "openpyxl",
+  "xlrd",
+  "lxml",
+  "pdfminer.six>=20251230",
+  "pdfplumber>=0.11.9",
+  "olefile",
+]
+pptx = ["python-pptx"]
+docx = ["mammoth~=1.11.0", "lxml"]
+xlsx = ["pandas", "openpyxl"]
+xls = ["pandas", "xlrd"]
+pdf = ["pdfminer.six>=20251230", "pdfplumber>=0.11.9"]
+outlook = ["olefile"]
+
+[project.urls]
+Source = "https://github.com/microsoft/markitdown"
+
+[tool.hatch.version]
+path = "src/markitdown_liberated/__about__.py"
+
+[project.scripts]
+markitdown-liberated-core = "markitdown_liberated.__main__:main"
+
+[tool.hatch.envs.default]
+features = ["all"]
+
+[tool.hatch.envs.hatch-test]
+features = ["all"]
+
+[tool.hatch.envs.types]
+features = ["all"]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive --ignore-missing-imports {args:src/markitdown_liberated tests}"
+
+[tool.coverage.run]
+source_pkgs = ["markitdown_liberated", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/markitdown_liberated/__about__.py",
+]
+
+[tool.coverage.paths]
+markitdown_liberated = ["src/markitdown_liberated", "*/markitdown-liberated-core/src/markitdown_liberated"]
+tests = ["tests", "*/markitdown-liberated-core/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["src/markitdown_liberated"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/markitdown_liberated"]
